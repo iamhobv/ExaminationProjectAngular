@@ -4,10 +4,11 @@ import { LoginService } from './../../Services/login-servicee.service';
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule,CommonModule,HttpClientModule],
+  imports: [ReactiveFormsModule,CommonModule,HttpClientModule,RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -36,27 +37,42 @@ get getUsername() {
 get getPassword() {
     return this.loginForm.controls['password'];
   }
+  
 mb20px:boolean = true;
 error:boolean = false;
+  private readonly router = inject(Router);
 
 LoginSubmit(){
 if(this.loginForm.status=="VALID"){
 
   console.log("clicked");
-  // Login:ILogin ={username:"",password:""}; 
   const loginCred = {username:"",password:""} as ILogin; 
   loginCred.username = this.loginForm.value.username ?? "";
   loginCred.password = this.loginForm.value.password ?? "";
 
-  this.loginService.login().subscribe({
-    next:()=>{
+  this.loginService.login(loginCred).subscribe({
+    next:(result)=>{
       console.log("logged in ");
+      // console.log(result);
+       setTimeout(() => {
+console.log(result.data.token);
+        localStorage.setItem("userToken",result.data.token)
+
+this.loginService.getUserToken();
+
+
+          this.router.navigate(["/home"])
+        }, 1000);
+      if(result.isPass == false){
+          this.error=true;
+      }
     },
-    error:()=>{
+    error:(e)=>{
       console.log("error");
+      console.log(e);
     }
   })
-  
+  this.error=false;
 }else{
   
   console.log("Error");
